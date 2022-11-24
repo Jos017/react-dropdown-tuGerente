@@ -8,11 +8,12 @@ import {
   limit,
   orderBy,
   startAfter,
+  where,
 } from 'firebase/firestore';
 import styles from './styles.module.css';
 
 const QUERY_LIMIT = 20;
-const ORDER_BY = 'code';
+const FILTER_BY = 'name';
 
 export const Dropdown = () => {
   const [companies, setCompanies] = useState([]);
@@ -26,27 +27,47 @@ export const Dropdown = () => {
   const getCompanies = async () => {
     const firstPage = query(
       companiesCollectionRef,
-      orderBy(ORDER_BY),
+      orderBy(FILTER_BY),
       limit(QUERY_LIMIT)
     );
-    updateCompaniesList(firstPage);
+    const data = await updateCompaniesList(firstPage);
+    setCompanies([...companies, ...data]);
+  };
+
+  const getCompaniesBySearch = async (searchValue) => {
+    const search = query(
+      companiesCollectionRef,
+      where(FILTER_BY, '>=', searchValue),
+      where(FILTER_BY, '<=', searchValue + '\uf8ff'),
+      orderBy(FILTER_BY),
+      limit(QUERY_LIMIT)
+    );
+    const data = await updateCompaniesList(search);
+    if (data) {
+      setCompanies([...data]);
+    } else {
+      setCompanies([]);
+    }
   };
 
   // Get the initial companies
   const getMoreCompanies = async () => {
     const nextPage = query(
       companiesCollectionRef,
-      orderBy(ORDER_BY),
+      orderBy(FILTER_BY),
       startAfter(lastItem),
+      where(FILTER_BY, '>=', inputValue.toUpperCase()),
+      where(FILTER_BY, '<=', inputValue.toUpperCase() + '\uf8ff'),
       limit(QUERY_LIMIT)
     );
-    updateCompaniesList(nextPage);
+    const data = await updateCompaniesList(nextPage);
+    if (data) {
+      setCompanies([...companies, ...data]);
+    }
   };
 
-  // Update list of companies according a query search
-  const updateCompaniesList = async (queryResult) => {
-    //a
-    const documentSnapshots = await getDocs(queryResult);
+  const updateCompaniesList = async (querySearch) => {
+    const documentSnapshots = await getDocs(querySearch);
     if (documentSnapshots.docs.length > 0) {
       const lastVisible =
         documentSnapshots.docs[documentSnapshots.docs.length - 1];
@@ -55,7 +76,7 @@ export const Dropdown = () => {
         ...doc.data(),
         id: doc.id,
       }));
-      setCompanies([...companies, ...data]);
+      return data;
     }
   };
 
@@ -65,7 +86,13 @@ export const Dropdown = () => {
       const totalCompanies = await getCompanies();
       code = `COMPANY${totalCompanies.length + 1}`;
     }
-    const newCompany = { name, businessName, nit, phone, code };
+    const newCompany = {
+      name: name.toUpperCase(),
+      businessName: businessName.toUpperCase(),
+      nit,
+      phone,
+      code,
+    };
     await addDoc(companiesCollectionRef, newCompany);
     const newCompaniesList = await getCompanies();
     setCompanies(newCompaniesList);
@@ -73,10 +100,19 @@ export const Dropdown = () => {
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
+    getCompaniesBySearch(e.target.value.toUpperCase());
   };
 
   const handleShowSearch = () => {
     setShowSearch(!showSearch);
+  };
+
+  const changeNameToCapitalLetter = (string) => {
+    const nameInArray = string.split(' ');
+    const nameInArrayCapitalized = nameInArray.map((word) => {
+      return word.slice(0, 1).toUpperCase() + word.slice(1).toLowerCase();
+    });
+    return nameInArrayCapitalized.toString().replace(',', ' ');
   };
 
   useEffect(() => {
@@ -90,17 +126,16 @@ export const Dropdown = () => {
         value={inputValue}
         onChange={handleInputChange}
       />
-      <button onClick={handleShowSearch}>AddCompany</button>
+      <button onClick={handleShowSearch}>Show List</button>
       <div className={showSearch ? 'list' : `${styles.hidden}`}>
         <ul>
           {companies.map((company, index) => (
             <li key={company.id}>
-              {index}: {company.name}
+              {index}: {changeNameToCapitalLetter(company.name)}
             </li>
           ))}
         </ul>
         <button onClick={getMoreCompanies}>LoadMore</button>
-        {lastItem && `${lastItem?.data().code}`}
       </div>
     </div>
   );
