@@ -12,10 +12,12 @@ import {
 } from 'firebase/firestore';
 import styles from './styles.module.css';
 
-const QUERY_LIMIT = 20;
-const FILTER_BY = 'name';
+// const queryLimit = 20;
+// const searchBy = 'name';
 
-export const Dropdown = () => {
+export const Dropdown = (props) => {
+  const { queryLimit, searchBy } = props;
+
   const [companies, setCompanies] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -27,8 +29,8 @@ export const Dropdown = () => {
   const getCompanies = async () => {
     const firstPage = query(
       companiesCollectionRef,
-      orderBy(FILTER_BY),
-      limit(QUERY_LIMIT)
+      orderBy(searchBy),
+      limit(queryLimit)
     );
     const data = await updateCompaniesList(firstPage);
     setCompanies([...companies, ...data]);
@@ -37,10 +39,10 @@ export const Dropdown = () => {
   const getCompaniesBySearch = async (searchValue) => {
     const search = query(
       companiesCollectionRef,
-      where(FILTER_BY, '>=', searchValue),
-      where(FILTER_BY, '<=', searchValue + '\uf8ff'),
-      orderBy(FILTER_BY),
-      limit(QUERY_LIMIT)
+      where(searchBy, '>=', searchValue),
+      where(searchBy, '<=', searchValue + '\uf8ff'),
+      orderBy(searchBy),
+      limit(queryLimit)
     );
     const data = await updateCompaniesList(search);
     if (data) {
@@ -54,11 +56,11 @@ export const Dropdown = () => {
   const getMoreCompanies = async () => {
     const nextPage = query(
       companiesCollectionRef,
-      orderBy(FILTER_BY),
+      orderBy(searchBy),
       startAfter(lastItem),
-      where(FILTER_BY, '>=', inputValue.toUpperCase()),
-      where(FILTER_BY, '<=', inputValue.toUpperCase() + '\uf8ff'),
-      limit(QUERY_LIMIT)
+      where(searchBy, '>=', inputValue.toUpperCase()),
+      where(searchBy, '<=', inputValue.toUpperCase() + '\uf8ff'),
+      limit(queryLimit)
     );
     const data = await updateCompaniesList(nextPage);
     if (data) {
@@ -112,7 +114,7 @@ export const Dropdown = () => {
     const nameInArrayCapitalized = nameInArray.map((word) => {
       return word.slice(0, 1).toUpperCase() + word.slice(1).toLowerCase();
     });
-    return nameInArrayCapitalized.toString().replace(',', ' ');
+    return nameInArrayCapitalized.toString().replaceAll(',', ' ');
   };
 
   useEffect(() => {
@@ -131,7 +133,7 @@ export const Dropdown = () => {
         <ul>
           {companies.map((company, index) => (
             <li key={company.id}>
-              {index}: {changeNameToCapitalLetter(company.name)}
+              {index}: {changeNameToCapitalLetter(company[searchBy])}
             </li>
           ))}
         </ul>
