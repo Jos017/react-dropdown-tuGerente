@@ -1,15 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { db } from '../../config/firebase-config';
+import React, { useState } from 'react';
 import {
-  collection,
-  getDocs,
-  addDoc,
-  query,
-  limit,
-  orderBy,
-  startAfter,
-  where,
-} from 'firebase/firestore';
+  getCompaniesBySearch,
+  getMoreCompanies,
+  createCompany,
+} from '../../services/firebase-api';
 import styles from './styles.module.css';
 
 export const Dropdown = (props) => {
@@ -19,7 +13,6 @@ export const Dropdown = (props) => {
   const [searchBy, setSearchBy] = useState('name');
   const [inputValue, setInputValue] = useState('');
   const [showSearch, setShowSearch] = useState(false);
-  const [lastItem, setLastItem] = useState(null);
   const [noMoreValues, setNoMoreValues] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formInputs, setFormInputs] = useState({
@@ -42,34 +35,17 @@ export const Dropdown = (props) => {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    const { name, businessName, nit, phone, code } = formInputs;
-    createCompany(name, businessName, nit, phone, code);
+    handleCreateCompany(formInputs);
     setIsModalOpen(false);
     clearFormInputs();
   };
 
-  const companiesCollectionRef = collection(db, 'companies');
-
-  // Obtains companies from firebase
-  const getCompanies = async () => {
-    const firstPage = query(
-      companiesCollectionRef,
-      orderBy(searchBy),
-      limit(queryLimit)
+  const handleCompaniesBySearch = async (searchValue, searchBy, queryLimit) => {
+    const data = await getCompaniesBySearch(
+      searchValue.toUpperCase(),
+      searchBy,
+      queryLimit
     );
-    const data = await updateCompaniesList(firstPage);
-    return data;
-  };
-
-  const getCompaniesBySearch = async (searchValue) => {
-    const search = query(
-      companiesCollectionRef,
-      where(searchBy, '>=', searchValue),
-      where(searchBy, '<=', searchValue + '\uf8ff'),
-      orderBy(searchBy),
-      limit(queryLimit)
-    );
-    const data = await updateCompaniesList(search);
     if (data) {
       setCompanies([...data]);
       setNoMoreValues(false);
@@ -79,17 +55,8 @@ export const Dropdown = (props) => {
     }
   };
 
-  // Get the initial companies
-  const getMoreCompanies = async () => {
-    const nextPage = query(
-      companiesCollectionRef,
-      orderBy(searchBy),
-      startAfter(lastItem),
-      where(searchBy, '>=', inputValue.toUpperCase()),
-      where(searchBy, '<=', inputValue.toUpperCase() + '\uf8ff'),
-      limit(queryLimit)
-    );
-    const data = await updateCompaniesList(nextPage);
+  const handleMoreCompanies = async () => {
+    const data = await getMoreCompanies(inputValue, searchBy, queryLimit);
     if (data) {
       setCompanies([...companies, ...data]);
       setNoMoreValues(false);
@@ -98,54 +65,35 @@ export const Dropdown = (props) => {
     }
   };
 
-  const updateCompaniesList = async (querySearch) => {
-    const documentSnapshots = await getDocs(querySearch);
-    if (documentSnapshots.docs.length > 0) {
-      const lastVisible =
-        documentSnapshots.docs[documentSnapshots.docs.length - 1];
-      setLastItem(lastVisible);
-      const data = documentSnapshots.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-      return data;
-    }
-  };
-
-  // Create a company in firebase
-  const createCompany = async (name, businessName, nit, phone, code) => {
-    if (!code) {
-      const totalCompanies = await getCompanies();
-      code = `COMPANY${totalCompanies ? totalCompanies.length + 1 : 1}`;
-    }
-    const newCompany = {
-      name: name.toUpperCase(),
-      businessName: businessName.toUpperCase(),
-      nit: `${nit}`,
-      phone: `${phone}`,
-      code,
-    };
-    await addDoc(companiesCollectionRef, newCompany);
-    const newCompaniesList = await getCompanies();
-    setCompanies(newCompaniesList);
+  const handleCreateCompany = async (newCompanyObj) => {
+    const { name, businessName, nit, phone, code } = newCompanyObj;
+    const newCompany = await createCompany(
+      name,
+      businessName,
+      nit,
+      phone,
+      code
+    );
+    alert(`Se creo la compañía: ${name}, con código: ${newCompany.code}`);
+    handleShowSearch();
   };
 
   const handleFilterChange = async (e) => {
     setSearchBy(e.target.value);
-    setLastItem(null);
-    const data = await getCompanies();
-    setCompanies([...data]);
+    console.log(inputValue, e.target.value, queryLimit);
+    await handleCompaniesBySearch(inputValue, e.target.value, queryLimit);
   };
 
   const handleInputChange = (e) => {
     setScrollPosition(0);
     setInputValue(e.target.value);
-    setShowSearch(true);
     setFormInputs({
       ...formInputs,
       [searchBy]: e.target.value,
     });
-    getCompaniesBySearch(e.target.value.toUpperCase());
+    if (showSearch) {
+      handleCompaniesBySearch(e.target.value, searchBy, queryLimit);
+    }
   };
 
   const clearFormInputs = () => {
@@ -164,8 +112,21 @@ export const Dropdown = (props) => {
     clearFormInputs();
   };
 
-  const handleShowSearch = () => {
-    setShowSearch(!showSearch);
+  const handleShowSearch = async () => {
+    const isOpen = showSearch;
+    setShowSearch(!isOpen);
+    if (!isOpen) {
+      await handleCompaniesBySearch(
+        inputValue.toUpperCase(),
+        searchBy,
+        queryLimit
+      );
+    }
+    if (isOpen) {
+      setInputValue('');
+      setScrollPosition(0);
+      setCompanies([]);
+    }
   };
 
   const changeNameToCapitalLetter = (string) => {
@@ -177,22 +138,17 @@ export const Dropdown = (props) => {
   };
 
   const handleScroll = (e) => {
+    if (scrollPosition === 0 && !showSearch) {
+      e.currentTarget.scrollTo({ top: 0 });
+    }
     setScrollPosition(e.currentTarget.scrollTop);
     const offsetHeight =
       e.currentTarget.scrollHeight - e.currentTarget.offsetHeight - 10;
     if (scrollPosition >= offsetHeight && !noMoreValues) {
-      getMoreCompanies();
+      handleMoreCompanies();
       console.log('buscar');
     }
   };
-
-  useEffect(() => {
-    const handleFirstList = async () => {
-      const data = await getCompanies();
-      data && setCompanies([...companies, ...data]);
-    };
-    handleFirstList();
-  }, []);
 
   return (
     <div className={styles.dropdown}>
@@ -212,6 +168,7 @@ export const Dropdown = (props) => {
           value={inputValue}
           onChange={handleInputChange}
           className={styles.dropdownInput}
+          // disabled={showSearch}
         />
         <button onClick={handleShowSearch} className={styles.dropdownButton}>
           {showSearch ? (
@@ -237,7 +194,7 @@ export const Dropdown = (props) => {
             </li>
           )}
           {companies.map((company, index) => (
-            <li key={index} className={styles.dropdownListLi}>
+            <li key={company.id} className={styles.dropdownListLi}>
               {index}: {changeNameToCapitalLetter(company[searchBy])}
             </li>
           ))}
