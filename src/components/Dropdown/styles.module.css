@@ -1,3 +1,119 @@
 .hidden {
   display: none;
 }
+
+.dropdown {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 150px;
+}
+
+.dropdownList {
+  width: 95%;
+  height: 250px;
+  overflow: auto;
+}
+
+.dropdownSearchBar {
+  width: 95%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdownInput,
+.dropdownButton {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  height: 1.6rem;
+}
+.dropdownInput {
+  padding: 0 0.8rem;
+  width: calc(100% - 1.6rem);
+}
+
+.dropdownButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+}
+
+.dropdownList {
+  box-sizing: border-box;
+  margin-top: 0.4rem;
+  width: 95%;
+}
+
+.dropdownListUl {
+  padding: 0;
+  list-style: none;
+}
+
+.dropdownListLi {
+  padding: 0.4rem 0.8rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.modal {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+.modalContainer {
+  width: 280px;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 8px;
+}
+.modalTextContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+.modalTitle {
+  margin: 0;
+}
+.modalBtnContainer {
+  display: flex;
+  justify-content: center;
+  padding: 8px 1.2px;
+}
+.modalBtn {
+  min-width: 52px;
+  min-height: 24px;
+  margin: 4px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ddd;
+  font-weight: 700;
+  color: #777;
+}
+.modalBtnBlue {
+  background-color: #1b8adb;
+  color: #fff;
+}
+
+.formInputContainer {
+  margin: 8px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (min-width: 764px) {
+  .dropdown {
+    width: 720px;
+  }
+}

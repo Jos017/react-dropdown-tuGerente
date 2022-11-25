@@ -12,9 +12,6 @@ import {
 } from 'firebase/firestore';
 import styles from './styles.module.css';
 
-// const queryLimit = 20;
-// const searchBy = 'name';
-
 export const Dropdown = (props) => {
   const { queryLimit, searchBy } = props;
 
@@ -22,6 +19,8 @@ export const Dropdown = (props) => {
   const [inputValue, setInputValue] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [lastItem, setLastItem] = useState(null);
+  const [noMoreValues, setNoMoreValues] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(true);
 
   const companiesCollectionRef = collection(db, 'companies');
 
@@ -47,8 +46,10 @@ export const Dropdown = (props) => {
     const data = await updateCompaniesList(search);
     if (data) {
       setCompanies([...data]);
+      setNoMoreValues(false);
     } else {
       setCompanies([]);
+      setNoMoreValues(true);
     }
   };
 
@@ -65,6 +66,9 @@ export const Dropdown = (props) => {
     const data = await updateCompaniesList(nextPage);
     if (data) {
       setCompanies([...companies, ...data]);
+      setNoMoreValues(false);
+    } else {
+      setNoMoreValues(true);
     }
   };
 
@@ -117,27 +121,106 @@ export const Dropdown = (props) => {
     return nameInArrayCapitalized.toString().replaceAll(',', ' ');
   };
 
+  const handleScroll = (e) => {
+    const scrollTopPosition = e.currentTarget.scrollTop;
+    const offsetHeight =
+      e.currentTarget.scrollHeight - e.currentTarget.offsetHeight - 10;
+    if (scrollTopPosition >= offsetHeight && !noMoreValues) {
+      getMoreCompanies();
+      console.log('buscar');
+    }
+  };
+
   useEffect(() => {
     getCompanies();
   }, []);
 
   return (
-    <div>
-      <input
-        placeholder="Buscar..."
-        value={inputValue}
-        onChange={handleInputChange}
-      />
-      <button onClick={handleShowSearch}>Show List</button>
-      <div className={showSearch ? 'list' : `${styles.hidden}`}>
-        <ul>
+    <div className={styles.dropdown}>
+      <div className={styles.dropdownSearchBar}>
+        <input
+          placeholder="Buscar..."
+          value={inputValue}
+          onChange={handleInputChange}
+          className={styles.dropdownInput}
+        />
+        <button onClick={handleShowSearch} className={styles.dropdownButton}>
+          {showSearch ? (
+            <span className="material-icons">expand_less</span>
+          ) : (
+            <span className="material-icons">expand_more</span>
+          )}
+        </button>
+      </div>
+      <div
+        className={showSearch ? `${styles.dropdownList}` : `${styles.hidden}`}
+        onScroll={handleScroll}
+      >
+        <ul className={styles.dropdownListUl}>
+          {inputValue && (
+            <li
+              className={styles.dropdownListLi}
+              onClick={() => {
+                setIsModalOpen(true);
+              }}
+            >
+              Añadir Empresa: {inputValue}
+            </li>
+          )}
           {companies.map((company, index) => (
-            <li key={company.id}>
+            <li key={company.id} className={styles.dropdownListLi}>
               {index}: {changeNameToCapitalLetter(company[searchBy])}
             </li>
           ))}
         </ul>
-        <button onClick={getMoreCompanies}>LoadMore</button>
+      </div>
+      <div className={isModalOpen ? `${styles.modal}` : `${styles.hidden}`}>
+        <form className={styles.modalContainer}>
+          <div className={styles.modalTextContainer}>
+            <h3 className={styles.modalTitle}>Create new Company</h3>
+            <div className={styles.formContainer}>
+              <div className={styles.formInputContainer}>
+                <label>Nombre</label>
+                <input />
+              </div>
+              <div className={styles.formInputContainer}>
+                <label>Razón Social</label>
+                <input />
+              </div>
+              <div className={styles.formInputContainer}>
+                <label>NIT</label>
+                <input />
+              </div>
+              <div className={styles.formInputContainer}>
+                <label>Teléfono</label>
+                <input />
+              </div>
+              <div className={styles.formInputContainer}>
+                <label>Código</label>
+                <input />
+              </div>
+            </div>
+          </div>
+          <div className={styles.modalBtnContainer}>
+            <button
+              className={`${styles.modalBtn}`}
+              onClick={() => setIsModalOpen(false)}
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              className={`${styles.modalBtn} ${styles.modalBtnBlue}`}
+              onClick={() => {
+                console.log('creado');
+                setIsModalOpen(false);
+              }}
+              type="submit"
+            >
+              Add Company
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
