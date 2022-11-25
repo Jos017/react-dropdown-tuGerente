@@ -183,12 +183,22 @@ export const Dropdown = (props) => {
         </select>
       </div>
       <div className={styles.dropdownSearchBar}>
-        <input
-          placeholder="Buscar..."
-          value={inputValue}
-          onChange={handleInputChange}
-          className={styles.dropdownInput}
-        />
+        {(searchBy === 'nit') | 'phone' ? (
+          <input
+            type="number"
+            placeholder="Buscar..."
+            value={inputValue}
+            onChange={handleInputChange}
+            className={styles.dropdownInput}
+          />
+        ) : (
+          <input
+            placeholder="Buscar..."
+            value={inputValue}
+            onChange={handleInputChange}
+            className={styles.dropdownInput}
+          />
+        )}
         <button onClick={handleShowSearch} className={styles.dropdownButton}>
           {showSearch ? (
             <span className="material-icons">expand_less</span>
