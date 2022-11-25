@@ -21,6 +21,29 @@ export const Dropdown = (props) => {
   const [lastItem, setLastItem] = useState(null);
   const [noMoreValues, setNoMoreValues] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(true);
+  const [formInputs, setFormInputs] = useState({
+    name: '',
+    businessName: '',
+    nit: '',
+    phone: '',
+    code: '',
+  });
+
+  const handleFormInputs = (e) => {
+    const value = e.target.value;
+    const name = e.target.name;
+    setFormInputs({
+      ...formInputs,
+      [name]: value,
+    });
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    const { name, businessName, nit, phone, code } = formInputs;
+    createCompany(name, businessName, nit, phone, code);
+    setIsModalOpen(false);
+  };
 
   const companiesCollectionRef = collection(db, 'companies');
 
@@ -32,7 +55,7 @@ export const Dropdown = (props) => {
       limit(queryLimit)
     );
     const data = await updateCompaniesList(firstPage);
-    setCompanies([...companies, ...data]);
+    return data;
   };
 
   const getCompaniesBySearch = async (searchValue) => {
@@ -132,7 +155,10 @@ export const Dropdown = (props) => {
   };
 
   useEffect(() => {
-    getCompanies();
+    const handleFirstList = async () => {
+      const data = await getCompanies();
+      setCompanies([...companies, ...data]);
+    };
   }, []);
 
   return (
@@ -175,29 +201,49 @@ export const Dropdown = (props) => {
         </ul>
       </div>
       <div className={isModalOpen ? `${styles.modal}` : `${styles.hidden}`}>
-        <form className={styles.modalContainer}>
+        <form className={styles.modalContainer} onSubmit={handleFormSubmit}>
           <div className={styles.modalTextContainer}>
             <h3 className={styles.modalTitle}>Create new Company</h3>
             <div className={styles.formContainer}>
               <div className={styles.formInputContainer}>
-                <label>Nombre</label>
-                <input />
+                <label htmlFor="name">Nombre</label>
+                <input
+                  name="name"
+                  value={formInputs.name}
+                  onChange={handleFormInputs}
+                />
               </div>
               <div className={styles.formInputContainer}>
                 <label>Razón Social</label>
-                <input />
+                <input
+                  name="businessName"
+                  value={formInputs.businessName}
+                  onChange={handleFormInputs}
+                />
               </div>
               <div className={styles.formInputContainer}>
                 <label>NIT</label>
-                <input />
+                <input
+                  name="nit"
+                  value={formInputs.nit}
+                  onChange={handleFormInputs}
+                />
               </div>
               <div className={styles.formInputContainer}>
                 <label>Teléfono</label>
-                <input />
+                <input
+                  name="phone"
+                  value={formInputs.phone}
+                  onChange={handleFormInputs}
+                />
               </div>
               <div className={styles.formInputContainer}>
                 <label>Código</label>
-                <input />
+                <input
+                  name="code"
+                  value={formInputs.code}
+                  onChange={handleFormInputs}
+                />
               </div>
             </div>
           </div>
@@ -211,10 +257,6 @@ export const Dropdown = (props) => {
             </button>
             <button
               className={`${styles.modalBtn} ${styles.modalBtnBlue}`}
-              onClick={() => {
-                console.log('creado');
-                setIsModalOpen(false);
-              }}
               type="submit"
             >
               Add Company
