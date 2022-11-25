@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from '@firebase/firestore';
 
+//Firebase configuration import data from env file
 const firebaseConfig = {
   apiKey: `${process.env.REACT_APP_apiKey}`,
   authDomain: `${process.env.REACT_APP_authDomain}`,

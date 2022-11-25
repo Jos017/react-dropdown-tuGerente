@@ -11,14 +11,19 @@ import styles from './styles.module.css';
 export const Dropdown = (props) => {
   const { queryLimit } = props;
 
-  const [isLoadingList, setIsLoadingList] = useState(false);
-  const [isLoadingItems, setIsLoadingItems] = useState(false);
+  // Set seach states
   const [companies, setCompanies] = useState([]);
   const [searchBy, setSearchBy] = useState('name');
-  const [inputValue, setInputValue] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [noMoreValues, setNoMoreValues] = useState(false);
+
+  // Set states for Loaders
+  const [isLoadingList, setIsLoadingList] = useState(false);
+  const [isLoadingItems, setIsLoadingItems] = useState(false);
+
+  // Control inputs from dropdown search bar, and add new Item form
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [inputValue, setInputValue] = useState('');
   const [formInputs, setFormInputs] = useState({
     name: '',
     businessName: '',
@@ -27,6 +32,7 @@ export const Dropdown = (props) => {
     code: '',
   });
 
+  // Control Inputs from search bar and forms
   const handleFormInputs = (e) => {
     const value = e.target.value;
     const name = e.target.name;
@@ -35,7 +41,6 @@ export const Dropdown = (props) => {
       [name]: value,
     });
   };
-
   const handleFormSubmit = (e) => {
     e.preventDefault();
     handleCreateCompany(formInputs);
@@ -43,12 +48,16 @@ export const Dropdown = (props) => {
     clearFormInputs();
   };
 
+  // Updates Companies status from data from firebase
+  // Consider: searchValue, searchBy, queryLimit (string, string, number)
   const handleCompaniesBySearch = async (searchValue, searchBy, queryLimit) => {
+    setIsLoadingList(true);
     const data = await getCompaniesBySearch(
       searchValue.toUpperCase(),
       searchBy,
       queryLimit
     );
+    // Update Companies list depending on data value
     if (data) {
       setCompanies([...data]);
       setNoMoreValues(false);
@@ -56,8 +65,10 @@ export const Dropdown = (props) => {
       setCompanies([]);
       setNoMoreValues(true);
     }
+    setIsLoadingList(false);
   };
 
+  // Adds more companies from data from firebase (pagination)
   const handleMoreCompanies = async () => {
     !isLoadingList && setIsLoadingItems(true);
     const data = await getMoreCompanies(inputValue, searchBy, queryLimit);
@@ -70,6 +81,8 @@ export const Dropdown = (props) => {
     setIsLoadingItems(false);
   };
 
+  // Creates a new company from object
+  // Object value should have at least 5 properties, 6 if need custom company code
   const handleCreateCompany = async (newCompanyObj) => {
     const { name, businessName, nit, phone, code } = newCompanyObj;
     const newCompany = await createCompany(
@@ -83,10 +96,12 @@ export const Dropdown = (props) => {
     handleShowSearch();
   };
 
+  // Reloads search considering new parameter
   const handleFilterChange = async (e) => {
+    setIsLoadingList(true);
     setSearchBy(e.target.value);
-    console.log(inputValue, e.target.value, queryLimit);
     await handleCompaniesBySearch(inputValue, e.target.value, queryLimit);
+    setIsLoadingList(false);
   };
 
   const handleInputChange = (e) => {
@@ -134,6 +149,7 @@ export const Dropdown = (props) => {
     setIsLoadingList(false);
   };
 
+  // First letter of words with Capital, from a string
   const changeNameToCapitalLetter = (string) => {
     const nameInArray = string.split(' ');
     const nameInArrayCapitalized = nameInArray.map((word) => {
@@ -142,6 +158,7 @@ export const Dropdown = (props) => {
     return nameInArrayCapitalized.toString().replaceAll(',', ' ');
   };
 
+  // Controls scroll position and search more data when position is at the end
   const handleScroll = async (e) => {
     if (!showSearch) {
       e.currentTarget.scrollTo({ top: 0 });
