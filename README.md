@@ -1,70 +1,86 @@
-# Getting Started with Create React App
+# Dropdown search bar
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This dropdown search bar was created as a component in a project using ReactJs.
 
-## Available Scripts
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/101021656/204050128-1066430b-4574-4b8e-8ac6-e65d78c01db0.png" width=50% height=50%>
+</p>
 
-In the project directory, you can run:
+## Considerations before running the app
 
-### `npm start`
+Its completely necesary to configure the environment variables and conect to firebase.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Environment variables
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+You must configure environment variables with the following key names:
+```
+REACT_APP_apiKey=value
+REACT_APP_authDomain=value
+REACT_APP_projectId=value
+REACT_APP_storageBucket=value
+REACT_APP_messagingSenderId=value
+REACT_APP_appId=value
+REACT_APP_measurementId=value
+```
+You obtain the key values from the info in your database in Firebase, you must replace instead of `value`.
 
-### `npm test`
+### Firebase DB
+There are some considerations you must have when conecting to the database in Firebase.
+* The collection name is `companies`
+* All the documents properties values are type `string`
+* The documents properties fields must be the following:
+  * `name`
+  * `businessName`
+  * `nit`
+  * `phone`
+  * `code`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## How does it work?
 
-### `npm run build`
+This is a dropdown search bar.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 1. Make a search
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+You can write what you want to search in the search bar, after that you press the arrowdown icon to begin the search.
+Once you have clicked the icon a list with the results will show. (20 results)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/101021656/204051935-27a755e2-a376-4915-8f37-8dd07d1c5c01.png" width=50% height=50%>
+</p>
 
-### `npm run eject`
+In case you did not write anything to search, and pressed the arrowdown icon. It will show 20 results.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/101021656/204052170-7d330509-364b-4cda-b2d1-6e5573a6e9ed.png" width=50% height=50%>
+</p>
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+If you write a new search while the dropdown list is open it will refresh the data obtained.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+The list has a scroll down and if there are more results in the database that matches the search,
+it will load more items if the scrollbar reaches the end of the list
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/101021656/204052666-960f9c23-19d8-4221-921a-3a604cf96086.png" width=50% height=50%>
+</p>
 
-## Learn More
+### 2. Filter search by parameter
+In this dropdown menu you can change the parameter of the search, the search will find matches depending on the parameter value.
+You only need to change the Search By Input.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/101021656/204052925-4885d29e-19ae-47dd-9359-61a5100c2204.png" width=50% height=50%>
+</p>
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 3. Add new company
+In every search, the first result is for adding a new company, if you click it a modal will appear and allow you to create a new company.
+The value of the search is used to fill in the form according to its parameter. You can edit it.
 
-### Code Splitting
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/101021656/204053208-02ce224e-3873-4032-b02e-ebc6ee8b8976.png" width=50% height=50%>
+</p>
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Once you added the data and press the button `Add Company`, a new Item is created into the database.
+To close the modal only click on `Cancel`.
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Created By
+Jose Bernabe Rios Nuñez (jrbernabe@gmail.com)
