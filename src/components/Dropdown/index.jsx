@@ -4,11 +4,14 @@ import {
   getMoreCompanies,
   createCompany,
 } from '../../services/firebase-api';
+import { Loader } from '../Loader';
 import styles from './styles.module.css';
 
 export const Dropdown = (props) => {
   const { queryLimit } = props;
 
+  const [isLoadingList, setIsLoadingList] = useState(false);
+  const [isLoadingItems, setIsLoadingItems] = useState(false);
   const [companies, setCompanies] = useState([]);
   const [searchBy, setSearchBy] = useState('name');
   const [inputValue, setInputValue] = useState('');
@@ -115,6 +118,7 @@ export const Dropdown = (props) => {
   const handleShowSearch = async () => {
     const isOpen = showSearch;
     setShowSearch(!isOpen);
+    setIsLoadingList(true);
     if (!isOpen) {
       await handleCompaniesBySearch(
         inputValue.toUpperCase(),
@@ -127,6 +131,7 @@ export const Dropdown = (props) => {
       setScrollPosition(0);
       setCompanies([]);
     }
+    setIsLoadingList(false);
   };
 
   const changeNameToCapitalLetter = (string) => {
@@ -137,7 +142,7 @@ export const Dropdown = (props) => {
     return nameInArrayCapitalized.toString().replaceAll(',', ' ');
   };
 
-  const handleScroll = (e) => {
+  const handleScroll = async (e) => {
     if (scrollPosition === 0 && !showSearch) {
       e.currentTarget.scrollTo({ top: 0 });
     }
@@ -145,8 +150,9 @@ export const Dropdown = (props) => {
     const offsetHeight =
       e.currentTarget.scrollHeight - e.currentTarget.offsetHeight - 10;
     if (scrollPosition >= offsetHeight && !noMoreValues) {
-      handleMoreCompanies();
-      console.log('buscar');
+      setIsLoadingItems(true);
+      await handleMoreCompanies();
+      setIsLoadingItems(false);
     }
   };
 
@@ -168,7 +174,6 @@ export const Dropdown = (props) => {
           value={inputValue}
           onChange={handleInputChange}
           className={styles.dropdownInput}
-          // disabled={showSearch}
         />
         <button onClick={handleShowSearch} className={styles.dropdownButton}>
           {showSearch ? (
@@ -182,24 +187,36 @@ export const Dropdown = (props) => {
         className={showSearch ? `${styles.dropdownList}` : `${styles.hidden}`}
         onScroll={handleScroll}
       >
-        <ul className={styles.dropdownListUl}>
-          {inputValue && (
+        {isLoadingList ? (
+          <Loader />
+        ) : (
+          <ul className={styles.dropdownListUl}>
             <li
-              className={styles.dropdownListLi}
+              className={`${styles.dropdownListLi} ${styles.dropdownAdd}`}
               onClick={() => {
                 setIsModalOpen(true);
               }}
             >
-              Añadir Empresa: {inputValue}
+              Añadir Empresa{' '}
+              {inputValue ? (
+                <strong>{': ' + inputValue}</strong>
+              ) : (
+                <strong>{' +'}</strong>
+              )}
             </li>
-          )}
-          {companies.map((company, index) => (
-            <li key={company.id} className={styles.dropdownListLi}>
-              {index}: {changeNameToCapitalLetter(company[searchBy])}
-            </li>
-          ))}
-        </ul>
+            {companies.map((company) => (
+              <li key={company.id} className={styles.dropdownListLi}>
+                {changeNameToCapitalLetter(company[searchBy])}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
+      {isLoadingItems && (
+        <div className={styles.dropdownLoad}>
+          <Loader />
+        </div>
+      )}
       <div className={isModalOpen ? `${styles.modal}` : `${styles.hidden}`}>
         <form className={styles.modalContainer} onSubmit={handleFormSubmit}>
           <div className={styles.modalTextContainer}>
