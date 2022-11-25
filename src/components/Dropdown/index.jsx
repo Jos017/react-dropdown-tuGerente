@@ -43,6 +43,7 @@ export const Dropdown = (props) => {
     const { name, businessName, nit, phone, code } = formInputs;
     createCompany(name, businessName, nit, phone, code);
     setIsModalOpen(false);
+    clearFormInputs();
   };
 
   const companiesCollectionRef = collection(db, 'companies');
@@ -129,7 +130,27 @@ export const Dropdown = (props) => {
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
+    setFormInputs({
+      ...formInputs,
+      [searchBy]: e.target.value,
+    });
     getCompaniesBySearch(e.target.value.toUpperCase());
+  };
+
+  const clearFormInputs = () => {
+    const clearedInputs = {
+      name: '',
+      businessName: '',
+      nit: '',
+      phone: '',
+      code: '',
+    };
+    setFormInputs({ ...clearedInputs });
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    clearFormInputs();
   };
 
   const handleShowSearch = () => {
@@ -159,6 +180,7 @@ export const Dropdown = (props) => {
       const data = await getCompanies();
       setCompanies([...companies, ...data]);
     };
+    handleFirstList();
   }, []);
 
   return (
@@ -250,7 +272,7 @@ export const Dropdown = (props) => {
           <div className={styles.modalBtnContainer}>
             <button
               className={`${styles.modalBtn}`}
-              onClick={() => setIsModalOpen(false)}
+              onClick={handleCloseModal}
               type="button"
             >
               Cancel
