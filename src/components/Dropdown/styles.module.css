@@ -77,60 +77,6 @@
   margin: 16px auto 0;
 }
 
-.modal {
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.4);
-}
-.modalContainer {
-  width: 280px;
-  overflow: hidden;
-  border-radius: 8px;
-  background-color: #fff;
-  padding: 8px;
-}
-.modalTextContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  justify-content: center;
-}
-.modalTitle {
-  margin: 0;
-}
-.modalBtnContainer {
-  display: flex;
-  justify-content: center;
-  padding: 8px 1.2px;
-}
-.modalBtn {
-  min-width: 52px;
-  min-height: 24px;
-  margin: 4px;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  background-color: #ddd;
-  font-weight: 700;
-  color: #777;
-}
-.modalBtnBlue {
-  background-color: #1b8adb;
-  color: #fff;
-}
-
-.formInputContainer {
-  margin: 8px 0;
-  display: flex;
-  justify-content: space-between;
-}
-
 @media (min-width: 764px) {
   .dropdown {
     width: 720px;

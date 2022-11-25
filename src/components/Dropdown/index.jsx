@@ -5,6 +5,7 @@ import {
   createCompany,
 } from '../../services/firebase-api';
 import { Loader } from '../Loader';
+import { Modal } from '../Modal';
 import styles from './styles.module.css';
 
 export const Dropdown = (props) => {
@@ -25,7 +26,6 @@ export const Dropdown = (props) => {
     phone: '',
     code: '',
   });
-  const [scrollPosition, setScrollPosition] = useState(0);
 
   const handleFormInputs = (e) => {
     const value = e.target.value;
@@ -59,6 +59,7 @@ export const Dropdown = (props) => {
   };
 
   const handleMoreCompanies = async () => {
+    !isLoadingList && setIsLoadingItems(true);
     const data = await getMoreCompanies(inputValue, searchBy, queryLimit);
     if (data) {
       setCompanies([...companies, ...data]);
@@ -66,6 +67,7 @@ export const Dropdown = (props) => {
     } else {
       setNoMoreValues(true);
     }
+    setIsLoadingItems(false);
   };
 
   const handleCreateCompany = async (newCompanyObj) => {
@@ -88,7 +90,6 @@ export const Dropdown = (props) => {
   };
 
   const handleInputChange = (e) => {
-    setScrollPosition(0);
     setInputValue(e.target.value);
     setFormInputs({
       ...formInputs,
@@ -128,7 +129,6 @@ export const Dropdown = (props) => {
     }
     if (isOpen) {
       setInputValue('');
-      setScrollPosition(0);
       setCompanies([]);
     }
     setIsLoadingList(false);
@@ -143,16 +143,13 @@ export const Dropdown = (props) => {
   };
 
   const handleScroll = async (e) => {
-    if (scrollPosition === 0 && !showSearch) {
+    if (!showSearch) {
       e.currentTarget.scrollTo({ top: 0 });
     }
-    setScrollPosition(e.currentTarget.scrollTop);
     const offsetHeight =
       e.currentTarget.scrollHeight - e.currentTarget.offsetHeight - 10;
-    if (scrollPosition >= offsetHeight && !noMoreValues) {
-      setIsLoadingItems(true);
+    if (e.currentTarget.scrollTop >= offsetHeight && !noMoreValues) {
       await handleMoreCompanies();
-      setIsLoadingItems(false);
     }
   };
 
@@ -217,72 +214,13 @@ export const Dropdown = (props) => {
           <Loader />
         </div>
       )}
-      <div className={isModalOpen ? `${styles.modal}` : `${styles.hidden}`}>
-        <form className={styles.modalContainer} onSubmit={handleFormSubmit}>
-          <div className={styles.modalTextContainer}>
-            <h3 className={styles.modalTitle}>Create new Company</h3>
-            <div className={styles.formContainer}>
-              <div className={styles.formInputContainer}>
-                <label>Nombre</label>
-                <input
-                  name="name"
-                  value={formInputs.name}
-                  onChange={handleFormInputs}
-                />
-              </div>
-              <div className={styles.formInputContainer}>
-                <label>Razón Social</label>
-                <input
-                  name="businessName"
-                  value={formInputs.businessName}
-                  onChange={handleFormInputs}
-                />
-              </div>
-              <div className={styles.formInputContainer}>
-                <label>NIT</label>
-                <input
-                  type="number"
-                  name="nit"
-                  value={formInputs.nit}
-                  onChange={handleFormInputs}
-                />
-              </div>
-              <div className={styles.formInputContainer}>
-                <label>Teléfono</label>
-                <input
-                  type="number"
-                  name="phone"
-                  value={formInputs.phone}
-                  onChange={handleFormInputs}
-                />
-              </div>
-              <div className={styles.formInputContainer}>
-                <label>Código</label>
-                <input
-                  name="code"
-                  value={formInputs.code}
-                  onChange={handleFormInputs}
-                />
-              </div>
-            </div>
-          </div>
-          <div className={styles.modalBtnContainer}>
-            <button
-              className={`${styles.modalBtn}`}
-              onClick={handleCloseModal}
-              type="button"
-            >
-              Cancel
-            </button>
-            <button
-              className={`${styles.modalBtn} ${styles.modalBtnBlue}`}
-              type="submit"
-            >
-              Add Company
-            </button>
-          </div>
-        </form>
-      </div>
+      <Modal
+        isModalOpen={isModalOpen}
+        handleFormSubmit={handleFormSubmit}
+        formInputs={formInputs}
+        handleFormInputs={handleFormInputs}
+        handleCloseModal={handleCloseModal}
+      />
     </div>
   );
 };
