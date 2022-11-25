@@ -4,7 +4,7 @@ import { Dropdown } from '../Dropdown';
 function App() {
   return (
     <div className={styles.App}>
-      <Dropdown queryLimit={20} searchBy="name" />
+      <Dropdown queryLimit={20} />
     </div>
   );
 }

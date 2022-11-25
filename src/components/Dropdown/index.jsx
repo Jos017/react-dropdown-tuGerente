@@ -13,14 +13,15 @@ import {
 import styles from './styles.module.css';
 
 export const Dropdown = (props) => {
-  const { queryLimit, searchBy } = props;
+  const { queryLimit } = props;
 
   const [companies, setCompanies] = useState([]);
+  const [searchBy, setSearchBy] = useState('name');
   const [inputValue, setInputValue] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [lastItem, setLastItem] = useState(null);
   const [noMoreValues, setNoMoreValues] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [formInputs, setFormInputs] = useState({
     name: '',
     businessName: '',
@@ -28,6 +29,7 @@ export const Dropdown = (props) => {
     phone: '',
     code: '',
   });
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   const handleFormInputs = (e) => {
     const value = e.target.value;
@@ -114,13 +116,13 @@ export const Dropdown = (props) => {
   const createCompany = async (name, businessName, nit, phone, code) => {
     if (!code) {
       const totalCompanies = await getCompanies();
-      code = `COMPANY${totalCompanies.length + 1}`;
+      code = `COMPANY${totalCompanies ? totalCompanies.length + 1 : 1}`;
     }
     const newCompany = {
       name: name.toUpperCase(),
       businessName: businessName.toUpperCase(),
-      nit,
-      phone,
+      nit: `${nit}`,
+      phone: `${phone}`,
       code,
     };
     await addDoc(companiesCollectionRef, newCompany);
@@ -128,8 +130,17 @@ export const Dropdown = (props) => {
     setCompanies(newCompaniesList);
   };
 
+  const handleFilterChange = async (e) => {
+    setSearchBy(e.target.value);
+    setLastItem(null);
+    const data = await getCompanies();
+    setCompanies([...data]);
+  };
+
   const handleInputChange = (e) => {
+    setScrollPosition(0);
     setInputValue(e.target.value);
+    setShowSearch(true);
     setFormInputs({
       ...formInputs,
       [searchBy]: e.target.value,
@@ -166,10 +177,10 @@ export const Dropdown = (props) => {
   };
 
   const handleScroll = (e) => {
-    const scrollTopPosition = e.currentTarget.scrollTop;
+    setScrollPosition(e.currentTarget.scrollTop);
     const offsetHeight =
       e.currentTarget.scrollHeight - e.currentTarget.offsetHeight - 10;
-    if (scrollTopPosition >= offsetHeight && !noMoreValues) {
+    if (scrollPosition >= offsetHeight && !noMoreValues) {
       getMoreCompanies();
       console.log('buscar');
     }
@@ -178,13 +189,23 @@ export const Dropdown = (props) => {
   useEffect(() => {
     const handleFirstList = async () => {
       const data = await getCompanies();
-      setCompanies([...companies, ...data]);
+      data && setCompanies([...companies, ...data]);
     };
     handleFirstList();
   }, []);
 
   return (
     <div className={styles.dropdown}>
+      <div className={styles.dropdownFilter}>
+        <label>Buscar por: </label>
+        <select value={searchBy} onChange={handleFilterChange}>
+          <option value="name">Nombre</option>
+          <option value="businessName">Razón Social</option>
+          <option value="nit">NIT</option>
+          <option value="phone">Teléfono</option>
+          <option value="code">Código</option>
+        </select>
+      </div>
       <div className={styles.dropdownSearchBar}>
         <input
           placeholder="Buscar..."
@@ -216,7 +237,7 @@ export const Dropdown = (props) => {
             </li>
           )}
           {companies.map((company, index) => (
-            <li key={company.id} className={styles.dropdownListLi}>
+            <li key={index} className={styles.dropdownListLi}>
               {index}: {changeNameToCapitalLetter(company[searchBy])}
             </li>
           ))}
@@ -228,7 +249,7 @@ export const Dropdown = (props) => {
             <h3 className={styles.modalTitle}>Create new Company</h3>
             <div className={styles.formContainer}>
               <div className={styles.formInputContainer}>
-                <label htmlFor="name">Nombre</label>
+                <label>Nombre</label>
                 <input
                   name="name"
                   value={formInputs.name}
@@ -246,6 +267,7 @@ export const Dropdown = (props) => {
               <div className={styles.formInputContainer}>
                 <label>NIT</label>
                 <input
+                  type="number"
                   name="nit"
                   value={formInputs.nit}
                   onChange={handleFormInputs}
@@ -254,6 +276,7 @@ export const Dropdown = (props) => {
               <div className={styles.formInputContainer}>
                 <label>Teléfono</label>
                 <input
+                  type="number"
                   name="phone"
                   value={formInputs.phone}
                   onChange={handleFormInputs}

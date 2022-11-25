@@ -10,6 +10,15 @@
   margin-top: 150px;
 }
 
+.dropdownFilter {
+  width: 95%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 8px;
+}
+
 .dropdownList {
   width: 95%;
   height: 250px;
